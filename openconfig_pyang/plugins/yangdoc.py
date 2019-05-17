@@ -223,8 +223,8 @@ def emit_docs(ctx, modules, fd):
 
   # emit docs for all of the current modules
   docs = emitter.emitDocs(ctx)
-
-  fd.write(docs)
+  if docs:
+    fd.write(docs)
 
 def emit_child(node, emitter, ctx, fd, level=1):
 
