@@ -68,7 +68,7 @@ class MarkdownEmitter(DocEmitter):
     """Markdown emitter method for YANG statements"""
 
     s = ""
-    md = markdown_helper.MarkdownGen()
+    md = markdown_helper.MarkdownHelper()
 
     if ctx.opts.strip_namespace:
       pathstr = yangpath.strip_namespace(statement.attrs['path'])
