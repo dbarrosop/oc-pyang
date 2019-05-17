@@ -26,6 +26,7 @@ import re
 #from lxml import etree
 import xml
 
+from util.rst_emitter import RSTEmitter
 from util.markdown_emitter import MarkdownEmitter
 from util.html_emitter import HTMLEmitter
 from util import yangpath
@@ -212,6 +213,8 @@ def emit_docs(ctx, modules, fd):
 
   if ctx.opts.doc_format == "html":
     emitter = HTMLEmitter()
+  elif ctx.opts.doc_format == "rst":
+    emitter = RSTEmitter()
   else:
     emitter = MarkdownEmitter()
   # write top level module and types
@@ -223,7 +226,6 @@ def emit_docs(ctx, modules, fd):
 
   # emit docs for all of the current modules
   docs = emitter.emitDocs(ctx)
-
   fd.write(docs)
 
 def emit_child(node, emitter, ctx, fd, level=1):
@@ -252,7 +254,10 @@ def collect_docs(module, ctx):
 
   # get the description text
   description = module.search_one('description')
-  mod.attrs['desc'] = description.arg
+  if description:
+    mod.attrs['desc'] = description.arg
+  else:
+    mod.attrs['desc'] = ''
 
   # get the prefix used by the module
   mod.attrs['prefix'] = module.i_prefix
