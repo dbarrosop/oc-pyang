@@ -92,7 +92,7 @@ class RSTEmitter(DocEmitter):
                     s += block("* {}: {}".format(b(k), v))
                 restrictions = td.typedoc.attrs.get("restrictions")
                 if restrictions:
-                    for k, v in restrictions:
+                    for k, v in restrictions.items():
                         s += block("{}: {}".format(b(k), c(v)))
 
         # handle identities
