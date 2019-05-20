@@ -169,7 +169,7 @@ class RSTEmitter(DocEmitter):
         return s
 
 
-def gen_type_info(typedoc):
+def gen_type_info(typedoc, is_union=False):
     """Create and return documentation based on the type.  Expands compound
   types."""
     s = block("{}: {}".format(b("Type"), c(typedoc.typename)))
@@ -198,8 +198,10 @@ def gen_type_info(typedoc):
         )
     elif typename == "union":
         for childtype in typedoc.childtypes:
-            s += gen_type_info(childtype)
+            s += gen_type_info(childtype, is_union=True)
+    elif is_union:
+        s += block("{}: {}".format(b("allowed type"), c(typename)))
     else:
-        raise Exception(typename)
+        pass
 
     return s
