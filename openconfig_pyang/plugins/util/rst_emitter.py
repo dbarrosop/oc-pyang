@@ -89,11 +89,14 @@ class RSTEmitter(DocEmitter):
                 s += block(td.attrs.get("desc", ""))
                 s += block(b("type") + ": " + c(td.typedoc.typename))
                 for k, v in td.typedoc.attrs.get("enums", {}).items():
-                    s += block("* {}: {}".format(b(k), v))
+                    s += block("* {}: {}".format(c(k), v))
                 restrictions = td.typedoc.attrs.get("restrictions")
                 if restrictions:
                     for k, v in restrictions.items():
                         s += block("{}: {}".format(b(k), c(v)))
+                if td.typedoc.typename == "union":
+                    for childtype in td.typedoc.childtypes:
+                        s += gen_type_info(childtype, is_union=True)
 
         # handle identities
         if len(mod.identities) > 0:
@@ -172,35 +175,39 @@ class RSTEmitter(DocEmitter):
 def gen_type_info(typedoc, is_union=False):
     """Create and return documentation based on the type.  Expands compound
   types."""
-    s = block("{}: {}".format(b("Type"), c(typedoc.typename)))
+    b_prefix = "*  " if is_union else ""
+    prefix = "  " if is_union else ""
+    s = block("{}{}: {}".format(b_prefix, b("Type"), c(typedoc.typename)))
 
     typename = typedoc.typename
     if typename == "enumeration":
         for enum, desc in typedoc.attrs["enums"].items():
-            s += block("{}: {}".format(b(c(enum)), desc))
+            s += block("{}* {}: {}".format(prefix, c(enum), desc))
     elif typename == "string":
         if "pattern" in typedoc.attrs["restrictions"]:
             s += block(
-                "{}: {}".format(
-                    b("pattern"), c(typedoc.attrs["restrictions"]["pattern"])
+                "{}* {}: {}".format(
+                    prefix, b("pattern"), c(typedoc.attrs["restrictions"]["pattern"])
                 )
             )
     elif typename in YangDocDefs.integer_types:
         if "range" in typedoc.attrs["restrictions"]:
             s += block(
-                "{}: {}".format(b("range"), c(typedoc.attrs["restrictions"]["range"]))
+                "{}* {}: {}".format(
+                    prefix, b("range"), c(typedoc.attrs["restrictions"]["range"])
+                )
             )
     elif typename == "identityref":
-        s += block("{}: {}".format(b("base"), c(typedoc.attrs["base"])))
+        s += block("{}* {}: {}".format(prefix, b("base"), c(typedoc.attrs["base"])))
     elif typename == "leafref":
         s += block(
-            "{}: {}".format(b("path reference"), c(typedoc.attrs["leafref_path"]))
+            "{}* {}: {}".format(
+                prefix, b("path reference"), c(typedoc.attrs["leafref_path"])
+            )
         )
     elif typename == "union":
         for childtype in typedoc.childtypes:
             s += gen_type_info(childtype, is_union=True)
-    elif is_union:
-        s += block("{}: {}".format(b("allowed type"), c(typename)))
     else:
         pass
 
