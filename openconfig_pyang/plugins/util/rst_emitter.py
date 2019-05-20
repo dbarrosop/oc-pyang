@@ -133,13 +133,14 @@ class RSTEmitter(DocEmitter):
             return s
 
         s += h4("{}".format(pathstr))
-        s += b("nodetype") + ": " + statement.keyword
-        if statement.attrs["is_key"]:
-            s += " (list key)"
-        s += newline()
 
         if "desc" in statement.attrs:
             s += block(statement.attrs["desc"])
+
+        s += b("nodetype") + ": " + c(statement.keyword)
+        if statement.attrs["is_key"]:
+            s += " (list key)"
+        s += newline()
 
         if statement.typedoc:
             s += gen_type_info(statement.typedoc)
