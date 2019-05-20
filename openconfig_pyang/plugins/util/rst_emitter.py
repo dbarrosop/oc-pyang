@@ -59,6 +59,10 @@ def i(content):
     return "*{}*".format(content)
 
 
+def c(content):
+    return "``{}``".format(content)
+
+
 def block(content):
     return "\n{}\n\n".format(content)
 
@@ -166,26 +170,30 @@ class RSTEmitter(DocEmitter):
 def gen_type_info(typedoc):
     """Create and return documentation based on the type.  Expands compound
   types."""
-    s = block("{}: {}".format(b("Type"), typedoc.typename))
+    s = block("{}: {}".format(b("Type"), c(typedoc.typename)))
 
     typename = typedoc.typename
     if typename == "enumeration":
         for enum, desc in typedoc.attrs["enums"].items():
-            s += block("{}: {}".format(b(enum), desc))
+            s += block("{}: {}".format(b(c(enum)), desc))
     elif typename == "string":
         if "pattern" in typedoc.attrs["restrictions"]:
             s += block(
-                "{}: {}".format(b("pattern"), typedoc.attrs["restrictions"]["pattern"])
+                "{}: {}".format(
+                    b("pattern"), c(typedoc.attrs["restrictions"]["pattern"])
+                )
             )
     elif typename in YangDocDefs.integer_types:
         if "range" in typedoc.attrs["restrictions"]:
             s += block(
-                "{}: {}".format(b("range"), typedoc.attrs["restrictions"]["range"])
+                "{}: {}".format(b("range"), c(typedoc.attrs["restrictions"]["range"]))
             )
     elif typename == "identityref":
-        s += block("{}: {}".format(b("base"), typedoc.attrs["base"]))
+        s += block("{}: {}".format(b("base"), c(typedoc.attrs["base"])))
     elif typename == "leafref":
-        s += block("{}: {}".format(b("path reference"), typedoc.attrs["leafref_path"]))
+        s += block(
+            "{}: {}".format(b("path reference"), c(typedoc.attrs["leafref_path"]))
+        )
     elif typename == "union":
         for childtype in typedoc.childtypes:
             s += gen_type_info(childtype)
