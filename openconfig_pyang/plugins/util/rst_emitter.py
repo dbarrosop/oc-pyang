@@ -87,12 +87,13 @@ class RSTEmitter(DocEmitter):
             for typename, td in mod.typedefs.items():
                 s += h4(typename)
                 s += block(td.attrs.get("desc", ""))
-                s += block(b("type") + ": " + td.typedoc.typename)
+                s += block(b("type") + ": " + c(td.typedoc.typename))
                 for k, v in td.typedoc.attrs.get("enums", {}).items():
                     s += block("* {}: {}".format(b(k), v))
                 restrictions = td.typedoc.attrs.get("restrictions")
                 if restrictions:
-                    s += block("{}: {}".format(b("restrictions"), restrictions))
+                    for k, v in restrictions:
+                        s += block("{}: {}".format(b(k), c(v)))
 
         # handle identities
         if len(mod.identities) > 0:
