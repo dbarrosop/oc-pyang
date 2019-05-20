@@ -200,6 +200,6 @@ def gen_type_info(typedoc):
         for childtype in typedoc.childtypes:
             s += gen_type_info(childtype)
     else:
-        pass
+        raise Exception(typename)
 
     return s
