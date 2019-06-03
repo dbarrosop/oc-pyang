@@ -59,6 +59,10 @@ def i(content):
     return "*{}*".format(content)
 
 
+def c(content):
+    return "``{}``".format(content)
+
+
 def block(content):
     return "\n{}\n\n".format(content)
 
@@ -83,12 +87,16 @@ class RSTEmitter(DocEmitter):
             for typename, td in mod.typedefs.items():
                 s += h4(typename)
                 s += block(td.attrs.get("desc", ""))
-                s += block(b("type") + ": " + td.typedoc.typename)
+                s += block(b("type") + ": " + c(td.typedoc.typename))
                 for k, v in td.typedoc.attrs.get("enums", {}).items():
-                    s += block("* {}: {}".format(b(k), v))
+                    s += block("* {}: {}".format(c(k), v))
                 restrictions = td.typedoc.attrs.get("restrictions")
                 if restrictions:
-                    s += block("{}: {}".format(b("restrictions"), restrictions))
+                    for k, v in restrictions.items():
+                        s += block("{}: {}".format(b(k), c(v)))
+                if td.typedoc.typename == "union":
+                    for childtype in td.typedoc.childtypes:
+                        s += gen_type_info(childtype, is_union=True)
 
         # handle identities
         if len(mod.identities) > 0:
@@ -129,13 +137,14 @@ class RSTEmitter(DocEmitter):
             return s
 
         s += h4("{}".format(pathstr))
-        s += b("nodetype") + ": " + statement.keyword
-        if statement.attrs["is_key"]:
-            s += " (list key)"
-        s += newline()
 
         if "desc" in statement.attrs:
             s += block(statement.attrs["desc"])
+
+        s += b("nodetype") + ": " + c(statement.keyword)
+        if statement.attrs["is_key"]:
+            s += " (list key)"
+        s += newline()
 
         if statement.typedoc:
             s += gen_type_info(statement.typedoc)
@@ -163,32 +172,42 @@ class RSTEmitter(DocEmitter):
         return s
 
 
-def gen_type_info(typedoc):
+def gen_type_info(typedoc, is_union=False):
     """Create and return documentation based on the type.  Expands compound
   types."""
-    s = block("{}: {}".format(b("Type"), typedoc.typename))
+    b_prefix = "*  " if is_union else ""
+    prefix = "  " if is_union else ""
+    s = block("{}{}: {}".format(b_prefix, b("Type"), c(typedoc.typename)))
 
     typename = typedoc.typename
     if typename == "enumeration":
         for enum, desc in typedoc.attrs["enums"].items():
-            s += block("{}: {}".format(b(enum), desc))
+            s += block("{}* {}: {}".format(prefix, c(enum), desc))
     elif typename == "string":
         if "pattern" in typedoc.attrs["restrictions"]:
             s += block(
-                "{}: {}".format(b("pattern"), typedoc.attrs["restrictions"]["pattern"])
+                "{}* {}: {}".format(
+                    prefix, b("pattern"), c(typedoc.attrs["restrictions"]["pattern"])
+                )
             )
     elif typename in YangDocDefs.integer_types:
         if "range" in typedoc.attrs["restrictions"]:
             s += block(
-                "{}: {}".format(b("range"), typedoc.attrs["restrictions"]["range"])
+                "{}* {}: {}".format(
+                    prefix, b("range"), c(typedoc.attrs["restrictions"]["range"])
+                )
             )
     elif typename == "identityref":
-        s += block("{}: {}".format(b("base"), typedoc.attrs["base"]))
+        s += block("{}* {}: {}".format(prefix, b("base"), c(typedoc.attrs["base"])))
     elif typename == "leafref":
-        s += block("{}: {}".format(b("path reference"), typedoc.attrs["leafref_path"]))
+        s += block(
+            "{}* {}: {}".format(
+                prefix, b("path reference"), c(typedoc.attrs["leafref_path"])
+            )
+        )
     elif typename == "union":
         for childtype in typedoc.childtypes:
-            s += gen_type_info(childtype)
+            s += gen_type_info(childtype, is_union=True)
     else:
         pass
 
